@@ -7,4 +7,4 @@ class House(models.Model):
     name = models.CharField(max_length=140)
     price = models.PositiveIntegerField()
     description = models.TextField()
-    address = models.CharField(max_legth=140)
+    address = models.CharField(max_length=140)
