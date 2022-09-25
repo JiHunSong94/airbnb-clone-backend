@@ -1,11 +1,14 @@
 from django.db import models
 
+
 class House(models.Model):
 
     """Model Definition for Houses"""
 
     name = models.CharField(max_length=140)
-    price_per_night = models.PositiveIntegerField(verbose_name="Price", help_text="Positive numbers only")
+    price_per_night = models.PositiveIntegerField(
+        verbose_name="Price", help_text="Positive numbers only"
+    )
     description = models.TextField()
     address = models.CharField(max_length=140)
     pets_allowed = models.BooleanField(
