@@ -1,8 +1,8 @@
-from tkinter import CASCADE
 from django.db import models
+from common.models import CommonModel
 
 
-class Room(models.Model):
+class Room(CommonModel):
 
     """Room Model Definition"""
 
@@ -25,11 +25,14 @@ class Room(models.Model):
     )
     owner = models.ForeignKey(
         "users.User",
-        on_delete=CASCADE,
+        on_delete=models.CASCADE,
+    )
+    amenities = models.ManyToManyField(
+        "rooms.Amenity",
     )
 
 
-class Amenity(models.Model):
+class Amenity(CommonModel):
 
     """Amenity Definition"""
 
