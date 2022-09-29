@@ -17,7 +17,7 @@ class Room(CommonModel):
     city = models.CharField(max_length=80, default="서울")
     price = models.PositiveIntegerField()
     rooms = models.PositiveIntegerField()
-    toillets = models.PositiveIntegerField()
+    toilets = models.PositiveIntegerField()
     description = models.TextField()
     address = models.CharField(max_length=250)
     pet_friendly = models.BooleanField(default=True)
@@ -28,15 +28,18 @@ class Room(CommonModel):
     owner = models.ForeignKey(
         "users.User",
         on_delete=models.CASCADE,
+        related_name="rooms",
     )
     amenities = models.ManyToManyField(
         "rooms.Amenity",
+        related_name="rooms",
     )
     category = models.ForeignKey(
         "categories.Category",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
+        related_name="rooms",
     )
 
     def __str__(self):

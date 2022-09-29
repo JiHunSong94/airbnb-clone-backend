@@ -17,14 +17,13 @@ class RoomAdmin(admin.ModelAdmin):
         "city",
         "price",
         "rooms",
-        "toillets",
+        "toilets",
         "pet_friendly",
         "kind",
         "amenities",
         "created_at",
         "updated_at",
     )
-
 
 
 @admin.register(Amenity)
