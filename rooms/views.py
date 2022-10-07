@@ -4,20 +4,20 @@ from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 from .models import Room
 from .models import Amenity
-from .serializer import AmenitySerializer, RoomSerializer
+from .serializers import AmenitySerializer, RoomListSerializer, RoomDetailSerializer
 
 
 class Rooms(APIView):
     def get(self, request):
         all_rooms = Room.objects.all()
-        serializer = RoomSerializer(all_rooms, many=True)
+        serializer = RoomListSerializer(all_rooms, many=True)
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = RoomSerializer(data=request.data)
+        serializer = RoomListSerializer(data=request.data)
         if serializer.is_valid():
             room = serializer.save()
-            return Response(RoomSerializer(room).data)
+            return Response(RoomListSerializer(room).data)
         else:
             return Response(serializer.errors)
 
@@ -31,19 +31,19 @@ class RoomDetail(APIView):
 
     def get(self, request, pk):
         room = self.get_object(pk)
-        serializer = RoomSerializer(room)
+        serializer = RoomDetailSerializer(room)
         return Response(serializer.data)
 
     def put(self, request, pk):
         room = self.get_object(pk)
-        serializer = RoomSerializer(
+        serializer = RoomDetailSerializer(
             room,
             data=request.data,
             partial=True,
         )
         if serializer.is_valid():
             updated_room = serializer.save()
-            return Response(RoomSerializer(updated_room).data)
+            return Response(RoomDetailSerializer(updated_room).data)
         else:
             return Response(serializer.errors)
 
