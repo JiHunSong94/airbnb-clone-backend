@@ -17,16 +17,14 @@ class AmenitySerializer(serializers.ModelSerializer):
 class RoomDetailSerializer(serializers.ModelSerializer):
 
     owner = TinyUserSerializer(read_only=True)
-    amenities = AmenitySerializer(read_only=True, many=True)
     category = CategorySerializer(read_only=True)
 
     rating = serializers.SerializerMethodField()
     is_owner = serializers.SerializerMethodField()
-    reviews = ReviewSerializer(many=True, read_only=True)
 
     class Meta:
         model = Room
-        fields = "__all__"
+        exclude = ("amenities",)
 
     def get_rating(self, room):
         return room.rating()

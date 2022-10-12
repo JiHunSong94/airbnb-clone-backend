@@ -1,3 +1,4 @@
+from tracemalloc import start
 from rest_framework.views import APIView
 from django.db import transaction
 from rest_framework.status import HTTP_204_NO_CONTENT
@@ -11,6 +12,7 @@ from rest_framework.exceptions import (
 from .models import Room, Amenity
 from categories.models import Category
 from .serializers import AmenitySerializer, RoomListSerializer, RoomDetailSerializer
+from reviews.serializers import ReviewSerializer
 
 
 class Rooms(APIView):
@@ -136,3 +138,47 @@ class AmenityDetail(APIView):
         amenity = self.get_object(pk)
         amenity.delete()
         return Response(status=HTTP_204_NO_CONTENT)
+
+
+class RoomReviews(APIView):
+    def get_object(self, pk):
+        try:
+            return Room.objects.get(pk=pk)
+        except Room.DoesNotExist:
+            raise NotFound
+
+    def get(self, request, pk):
+        try:
+            page = request.query_params.get("page", 1)
+            page = int(page)
+        except ValueError:
+            page = 1
+        page_size = 3
+        start = (page - 1) * page
+        end = start + page_size
+        room = self.get_object(pk)
+        serializer = ReviewSerializer(room.reviews.all()[start:end], many=True)
+        return Response(serializer.data)
+
+
+class RoomAmenities(APIView):
+    def get_object(self, pk):
+        try:
+            return Room.objects.get(pk=pk)
+        except Room.DoesNotExist:
+            raise NotFound
+
+    def get(self, request, pk):
+        try:
+            page = int(request.query_params.get("page", 1))
+        except ValueError:
+            page = 1
+        page_size = 3
+        start = (page - 1) * page
+        end = start + page_size
+        room = self.get_object(pk)
+        serializer = AmenitySerializer(
+            room.amenities.all()[start:end],
+            many=True,
+        )
+        return Response(serializer.data)
