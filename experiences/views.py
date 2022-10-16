@@ -1,9 +1,12 @@
+from django.conf import settings
 from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.status import HTTP_204_NO_CONTENT
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.exceptions import NotFound, PermissionDenied
+
+from reviews.serializers import ReviewSerializer
 
 from .models import Experience, Perk
 from .serializers import (
@@ -76,6 +79,45 @@ class ExperiencePerks(APIView):
         return Response(serializer.data)
 
 
+class ExperienceReviews(APIView):
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_object(self, pk):
+        try:
+            return Experience.objects.get(pk=pk)
+        except Experience.DoesNotExist:
+            raise NotFound
+
+    def get(self, request, pk):
+        try:
+            page = request.query_params.get("page", 1)
+            page = int(page)
+        except ValueError:
+            page = 1
+        page_size = settings.PAGE_SIZE
+        start = (page - 1) * page
+        end = start + page_size
+        experience = self.get_object(pk)
+        serializer = ReviewSerializer(
+            experience.reviews.all()[start:end],
+            many=True,
+        )
+        return Response(serializer.data)
+
+    def post(self, request, pk):
+        serializer = ReviewSerializer(data=request.data)
+        if serializer.is_valid():
+            review = serializer.save(
+                user=request.user,
+                experience=self.get_object(pk),
+            )
+            serializer = ReviewSerializer(review)
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+
 class ExperienceBookings(APIView):
 
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -129,6 +171,8 @@ class ExperienceBookingDetail(APIView):
 
     def put(self, request, pk, booking_pk):
         booking = self.get_booking(booking_pk)
+        if booking.user != request.user:
+            raise PermissionDenied
         serializer = PublicBookingSerializer(
             booking,
             data=request.data,

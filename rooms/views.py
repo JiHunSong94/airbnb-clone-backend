@@ -179,7 +179,8 @@ class RoomReviews(APIView):
             )
             serializer = ReviewSerializer(review)
             return Response(serializer.data)
-
+        else:
+            return Response(serializer.errors)
 
 class RoomAmenities(APIView):
     def get_object(self, pk):
