@@ -1,13 +1,18 @@
+from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.status import HTTP_204_NO_CONTENT
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.exceptions import NotFound, PermissionDenied
+
 from .models import Experience, Perk
 from .serializers import (
     ExperienceDetailSerializer,
     ExperienceSerializer,
     PerkSerializer,
 )
+from bookings.models import Booking
+from bookings.serializers import PublicBookingSerializer, CreateExperienceSerializer
 
 
 class Experiences(APIView):
@@ -69,6 +74,46 @@ class ExperiencePerks(APIView):
         experience = self.get_object(pk)
         serializer = PerkSerializer(experience.perks.all(), many=True)
         return Response(serializer.data)
+
+
+class ExperienceBookings(APIView):
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_object(self, pk):
+        try:
+            return Experience.objects.get(pk=pk)
+        except Experience.DoesNotExist:
+            raise NotFound
+
+    def get(self, request, pk):
+        experience = self.get_object(pk)
+        now = timezone.localtime(timezone.now()).date()
+        bookings = Booking.objects.filter(
+            experience=experience,
+            kind=Booking.BookingKindChoices.EXPERIENCE,
+            experience_time__gt=now,
+        )
+        serializer = PublicBookingSerializer(bookings, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, pk):
+        experience = self.get_object(pk)
+        serializer = CreateExperienceSerializer(data=request.data)
+        if serializer.is_valid():
+            booking = serializer.save(
+                experience=experience,
+                kind=Booking.BookingKindChoices.EXPERIENCE,
+                user=request.user,
+            )
+            serializer = PublicBookingSerializer(booking)
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+
+class ExperienceBookingDetail(APIView):
+    pass
 
 
 class Perks(APIView):

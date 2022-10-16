@@ -16,7 +16,10 @@ from .serializers import AmenitySerializer, RoomListSerializer, RoomDetailSerial
 from reviews.serializers import ReviewSerializer
 from medias.serializers import PhotoSerializer
 from bookings.models import Booking
-from bookings.serializers import PublicBookingSerializer, CreateRoomBookingSerializer
+from bookings.serializers import (
+    PublicBookingSerializer,
+    CreateRoomBookingSerializer,
+)
 
 
 class Rooms(APIView):

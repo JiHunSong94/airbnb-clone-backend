@@ -49,3 +49,12 @@ class PublicBookingSerializer(serializers.ModelSerializer):
             "experience_time",
             "guests",
         )
+
+
+class CreateExperienceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Booking
+        fields = (
+            "experience_time",
+            "guests",
+        )
