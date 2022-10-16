@@ -58,6 +58,19 @@ class ExperienceDetail(APIView):
         return Response(status=HTTP_204_NO_CONTENT)
 
 
+class ExperiencePerks(APIView):
+    def get_object(self, pk):
+        try:
+            return Experience.objects.get(pk=pk)
+        except Experience.DoesNotExist:
+            raise NotFound
+
+    def get(self, request, pk):
+        experience = self.get_object(pk)
+        serializer = PerkSerializer(experience.perks.all(), many=True)
+        return Response(serializer.data)
+
+
 class Perks(APIView):
     def get(self, request):
         all_perks = Perk.objects.all()
