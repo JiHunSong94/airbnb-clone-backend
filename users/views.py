@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.contrib.auth import authenticate, login, logout
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -5,6 +7,7 @@ from rest_framework.exceptions import ParseError, NotFound
 from rest_framework import status
 from .models import User
 from . import serializers
+from reviews.serializers import ReviewSerializer
 
 
 class Me(APIView):
@@ -54,8 +57,25 @@ class PublicUser(APIView):
             user = User.objects.get(username=username)
         except User.DoesNoteExist:
             raise NotFound
-        user = User.objects.get(username=username)
         serializer = serializers.PublicUserSerializer(user)
+        return Response(serializer.data)
+
+
+class UserReviews(APIView):
+    def get(self, request, username):
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNoteExist:
+            raise NotFound
+        try:
+            page = request.query_params.get("page", 1)
+            page = int(page)
+        except ValueError:
+            page = 1
+        page_size = settings.PAGE_SIZE
+        start = (page - 1) * page
+        end = start + page_size
+        serializer = ReviewSerializer(user.reviews.all()[start:end], many=True)
         return Response(serializer.data)
 
 
@@ -75,3 +95,30 @@ class ChangePassword(APIView):
             return Response(status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class LogIn(APIView):
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+        if not username or not password:
+            raise ParseError
+        user = authenticate(
+            request,
+            username=username,
+            password=password,
+        )
+        if user:
+            login(request, user)
+            return Response({"ok": "Welcome!"})
+        else:
+            return Response({"error": "wrong password"})
+
+
+class LogOut(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        logout(request)
+        return Response({"ok": "bye!"})
